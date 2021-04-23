@@ -5,7 +5,8 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLSchema,
-  GraphQLList
+  GraphQLList,
+  GraphQLNonNull
 } = graphql;
 
 // Callback on the field is defined but only executed when the entire file has been executed
@@ -48,7 +49,7 @@ const RootQuery = new GraphQLObjectType({
       type: UserType,
       args: { id: { type: GraphQLString } },
       resolve(parentValue, args) { // Goes into database and find the initial Data
-        return axios.get(`http://localhost:3000/users/${args.id}`) // Returns { data: { firstName: "Bill" } }
+        return axios.post(`http://localhost:3000/users/${args.id}`) // Returns { data: { firstName: "Bill" } }
                 .then(res => res.data)
       } 
     },
@@ -63,6 +64,27 @@ const RootQuery = new GraphQLObjectType({
   }
 })
 
+
+const mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    addUser: {
+      type: UserType,
+      args: {
+        firstName: { type: new GraphQLNonNull(GraphQLString) },
+        age: { type: new GraphQLNonNull(GraphQLInt) },
+        companyId: { type: GraphQLString }
+      },
+      resolve(parentValue, { firstName, age }) {
+        return axios.post(`http://localhost:3000/users`, { firstName, age }) 
+                .then(res => res.data)
+      }
+    }
+  }
+})
+
+
 module.exports = new GraphQLSchema({
-  query: RootQuery
+  query: RootQuery,
+  mutation
 })
